@@ -111,6 +111,11 @@ Coredata Example, chat app layout in code, collectionview in code
     func controller(controller: NSFetchedResultsController, didChangeObject anObject: AnyObject, atIndexPath indexPath: NSIndexPath?, forChangeType type: NSFetchedResultsChangeType, newIndexPath: NSIndexPath?) {
     
       // when coredata new object will be inserted this method will be called NSBlockopertaion array will append its logic 
+      // The NSBlockOperation class is a concrete subclass of NSOperation that manages the concurrent execution of one or more blocks.           You can use this object to execute several blocks at once without having to create separate operation objects for each. When             executing more than one block, the operation itself is considered finished only when all blocks have finished executing.
+
+       //Blocks added to a block operation are dispatched with default priority to an appropriate work queue. The blocks themselves             should not make any assumptions about the configuration of their execution environment.
+       **/
+       
         if type == .Insert {
             blockOperations.append(NSBlockOperation(block: { 
                 self.collectionView?.insertItemsAtIndexPaths([newIndexPath!])
@@ -134,24 +139,54 @@ Coredata Example, chat app layout in code, collectionview in code
                 
         })
       }
-          
-          
-          
-          
-    
-    
-    
-    
+ 
+ (4) Nsnotification center observe two method when keyboard hide and show
+ 
+      // chat application edit text field message send task have some logic behind this
        
-       
-      
+                  NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(handleKeyboardNotification), name:                             UIKeyboardWillShowNotification, object: nil)
         
-        
+                  NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(handleKeyboardNotification), name:                             UIKeyboardWillHideNotification, object: nil)
+     
+     // this method will be called when ever key board will be shown or hide
+     
+                  func handleKeyboardNotification(notification: NSNotification) {
+                             
+                    if let userInfo = notification.userInfo {
+                    
+     // this syntax : userInfo[UIKeyboardFrameEndUserInfoKey]?.CGRectValue()
+     // gives keyboard frame 
+     
+                        let keyboardFrame = userInfo[UIKeyboardFrameEndUserInfoKey]?.CGRectValue()
+                        print(keyboardFrame)
+     // whether check keyboard is showing bool variable 
+                        let isKeyboardShowing = notification.name == UIKeyboardWillShowNotification
 
+     // if isKeyboardShowing is true set some frame or zero to bottom constant of editTextField of view
+     
+                        bottomConstraint?.constant = isKeyboardShowing ? -keyboardFrame!.height : 0
 
+     // this core animation will be to make its animation smooth
+     
+                        UIView.animateWithDuration(0, delay: 0, options: UIViewAnimationOptions.CurveEaseOut, animations: { 
+    
+    // to draw all views again smoothly 
+                            self.view.layoutIfNeeded()
+
+                            }, completion: { (completed) in
+    // after animation make collection view scrolling to specific animation .. check more code or run 
+                                if isKeyboardShowing {
+                                    let lastItem = self.fetchedResultsControler.sections![0].numberOfObjects - 1
+                                    let indexPath = NSIndexPath(forItem: lastItem, inSection: 0)
+                                    self.collectionView?.scrollToItemAtIndexPath(indexPath, atScrollPosition: .Bottom, animated: true)
+                                }
+
+                        })
+                    }
+                }
+
+                override func collectionView(collectionView: UICollectionView, didSelectItemAtIndexPath indexPath: NSIndexPath) {
+                    inputTextField.endEditing(true)
+                }    
 
    
-   
-      
-      
-      
